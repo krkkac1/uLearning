@@ -1,0 +1,40 @@
+#learning basic loops and using 'random' package
+
+import random
+
+# Initialize counters
+banana_count = 0
+apple_count = 0
+chocolate_bar_count = 0
+
+# Run the program four times
+for _ in range(4):
+    # Eating banana
+    if random.random() < 0.5:
+        banana_count += 1
+        print("Ate a banana")
+    else:
+        print("Failed to eat a banana")
+        continue  # Skip the rest of the loop if a banana is not eaten
+
+    # Eating apple (dependent on eating a banana)
+    if random.random() < 0.5:
+        apple_count += 1
+        print("Ate an apple")
+    else:
+        print("Failed to eat an apple")
+        continue  # Skip the rest of the loop if an apple is not eaten
+
+    # Eating chocolate bar (dependent on eating an apple)
+    if random.random() < 0.5:
+        chocolate_bar_count += 1
+        print("Ate a chocolate bar")
+    else:
+        print("Failed to eat a chocolate bar")
+
+    print()  # Print a newline for clarity
+
+# Print the final counts
+print("Banana count:", banana_count)
+print("Apple count:", apple_count)
+print("Chocolate bar count:", chocolate_bar_count)
