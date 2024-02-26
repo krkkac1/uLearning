@@ -1,0 +1,45 @@
+#working on loops in python; increasing/decrasing chances of future outcome based on attributes
+
+
+
+import random
+
+# Condition for action 1
+skillP = 65
+skillG = 65
+skillFT = 50
+pas = 0
+shoot = 0
+ft = 0
+
+for _ in range(4):
+    if skillP > random.randint(0, 100):
+        print("good pass")
+        pas += 1
+        skillP += 5
+
+        if skillG > random.randint(0, 100):
+            print("good shoot")
+            shoot += 1
+            skillG += 5
+
+            if skillFT > random.randint(0, 100):
+                print("good FT")
+                ft += 1
+                skillFT += 5
+            else:
+                print("bad FT")
+                skillFT -=5
+        else:
+            print("bad shoot")
+            skillG -= 5
+    else:
+        print("bad pass")
+        skillP -= 5
+
+print(pas)
+print(shoot)
+print(ft)
+print(skillP)
+print(skillG)
+print(skillFT)
