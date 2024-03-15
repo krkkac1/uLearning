@@ -1,0 +1,137 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+import pandas as pd
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+
+#scrape a single game shots data from source page
+
+base_url = 'https://understat.com/match/'
+match = str(input('Enter match ID: '))
+url = base_url+match
+
+
+#outcome: "Enter match ID: " 
+
+#Using 2 different packages: 'requests' to get the page and 'BeautifulSoup' to parse the page
+
+res = requests.get(url)
+soup = BeautifulSoup(res.content, 'lxml')
+scripts = soup.find_all('script')
+
+
+#get the shotsData
+strings = scripts[1].string
+
+
+# formatting the data to remove symbols and get only JSON data 
+ind_start = strings.index("('")+2 
+ind_end = strings.index("')") 
+json_data = strings[ind_start:ind_end] 
+json_data = json_data.encode('utf8').decode('unicode_escape')
+
+#convert string to json format
+data = json.loads(json_data)
+
+
+#create a loop to create the dataset 
+x = []
+y = []
+xG = []
+result = []
+team = []
+data_away = data['a']
+data_home = data['h']
+
+for index in range(len(data_home)):
+    for key in data_home[index]:
+        if key == 'X':
+            x.append(data_home[index][key])
+        if key == 'Y':
+            y.append(data_home[index][key])
+        if key == 'h_team':
+            team.append(data_home[index][key])
+        if key == 'xG':
+            xG.append(data_home[index][key])
+        if key == 'result':
+            result.append(data_home[index][key])
+
+for index in range(len(data_away)):
+    for key in data_away[index]:
+        if key == 'X':
+            x.append(data_away[index][key])
+        if key == 'Y':
+            y.append(data_away[index][key])
+        if key == 'a_team':
+            team.append(data_away[index][key])
+        if key == 'xG':
+            xG.append(data_away[index][key])
+        if key == 'result':
+            result.append(data_away[index][key])
+
+col_names = ['x','y','xG','result','team']
+df = pd.DataFrame([x,y,xG,result,team],index=col_names)
+df = df.T
+
+
+print(df)
+
+
+#second part - creating xFlow chart from the scraped data 
+
+
+
+#creating lists to select different xG values from the dataset
+a_xG = [0]
+h_xG= [0]
+a_min = [0]
+h_min = [0]
+
+
+#finds our team names from the datafset
+hteam = df['team'].iloc[0]
+ateam = df['team'].iloc[-1]
+
+for x in range(len(df['xG'])):
+    if df['team'][x]==ateam:
+        a_xG.append(df['xG'][x])
+        a_min.append(df['minute'][x])
+    if df['team'][x]==hteam:
+        h_xG.append(df['xG'][x])
+        h_min.append(df['minute'][x])
+        
+#function that makes xG values cumulative instead of single shot
+def nums_cumulative_sum(nums_list):
+    return [sum(nums_list[:i+1]) for i in range(len(nums_list))]
+
+a_cumulative = nums_cumulative_sum(a_xG)
+h_cumulative = nums_cumulative_sum(h_xG)
+
+#find the total xG
+alast = round(a_cumulative[-1],2)
+hlast = round(h_cumulative[-1],2)
+
+#chart set up 
+
+fig, ax = plt.subplots(figsize = (12,7))
+fig.set_facecolor('#44453e')
+ax.patch.set_facecolor('#44453e')
+
+mpl.rcParams['xtick.color'] = 'white'
+mpl.rcParams['ytick.color'] = 'white'
+
+ax.grid(ls='dotted',lw=.7,color='grey',axis='y',zorder=1)
+spines = ['top','bottom','left','right']
+for x in spines:
+    if x in spines:
+        ax.spines[x].set_visible(False)
+        
+plt.xticks([0,15,30,45,60,75,90])
+plt.xlabel('Minute',color='white',fontsize=16)
+plt.ylabel('xG',color='white',fontsize=16)
+
+ax.step(x=a_min,y=a_cumulative,color='#d3d3d3',label=ateam,linewidth=5,where='post')
+ax.step(x=h_min,y=h_cumulative,color='#fd3607',label=ateam,linewidth=5,where='post')
